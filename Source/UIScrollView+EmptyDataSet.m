@@ -303,6 +303,14 @@ static char const * const kEmptyDataSetView =       "emptyDataSetView";
     return YES;
 }
 
+- (BOOL)dzn_shouldBeInFront
+{
+    if (self.emptyDataSetDelegate && [self.emptyDataSetDelegate respondsToSelector:@selector(emptyDataSetShouldBeInFront:)]) {
+        return [self.emptyDataSetDelegate emptyDataSetShouldBeInFront:self];
+    }
+    return NO;
+}
+
 - (BOOL)dzn_shouldDisplay
 {
     if (self.emptyDataSetDelegate && [self.emptyDataSetDelegate respondsToSelector:@selector(emptyDataSetShouldDisplay:)]) {
@@ -465,7 +473,12 @@ static char const * const kEmptyDataSetView =       "emptyDataSetView";
         if (!view.superview) {
             // Send the view all the way to the back, in case a header and/or footer is present, as well as for sectionHeaders or any other content
             if (([self isKindOfClass:[UITableView class]] || [self isKindOfClass:[UICollectionView class]]) && self.subviews.count > 1) {
-                [self insertSubview:view atIndex:0];
+                if ([self dzn_shouldBeInFront]) {
+                    [self addSubview:view];
+                }
+                else {
+                    [self insertSubview:view atIndex:0];
+                }
             }
             else {
                 [self addSubview:view];

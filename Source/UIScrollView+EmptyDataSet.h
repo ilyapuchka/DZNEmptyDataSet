@@ -79,7 +79,6 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (UIView *)loadingViewForEmptyDataSet:(UIScrollView *)scrollView;
 
-
 /**
  Asks the data source for a tint color of the image dataset. Default is nil.
  
@@ -197,6 +196,14 @@ NS_ASSUME_NONNULL_BEGIN
  @return YES if the empty dataset should show.
  */
 - (BOOL)emptyDataSetShouldDisplay:(UIScrollView *)scrollView;
+
+/**
+ Asks the delegate to know if the empty dataset should be displayed in front of all content. Default is NO.
+ 
+ @param scrollView A scrollView subclass object informing the delegate.
+ @return YES if the empty dataset should displayed in front.
+ */
+- (BOOL)emptyDataSetShouldBeInFront:(UIScrollView *)scrollView;
 
 /**
  Asks the delegate for touch permission. Default is YES.

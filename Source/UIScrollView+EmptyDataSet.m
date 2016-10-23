@@ -30,6 +30,7 @@
 @property (nonatomic, readonly) UIView *contentView;
 @property (nonatomic, readonly) UILabel *titleLabel;
 @property (nonatomic, readonly) UILabel *detailLabel;
+@property (nonatomic, readonly) UIView *loadingView;
 @property (nonatomic, readonly) UIImageView *imageView;
 @property (nonatomic, readonly) UIButton *button;
 @property (nonatomic, strong) UIView *customView;
@@ -181,6 +182,15 @@ static char const * const kEmptyDataSetView =       "emptyDataSetView";
         NSAttributedString *string = [self.emptyDataSetSource descriptionForEmptyDataSet:self];
         if (string) NSAssert([string isKindOfClass:[NSAttributedString class]], @"You must return a valid NSAttributedString object for -descriptionForEmptyDataSet:");
         return string;
+    }
+    return nil;
+}
+
+- (UIView *)dzn_loadingView {
+    if (self.emptyDataSetSource && [self.emptyDataSetSource respondsToSelector:@selector(loadingViewForEmptyDataSet:)]) {
+        UIImage *view = [self.emptyDataSetSource loadingViewForEmptyDataSet:self];
+        if (view) NSAssert([view isKindOfClass:[UIView class]], @"You must return a UIView object for -loadingViewForEmptyDataSet:");
+        return view;
     }
     return nil;
 }
@@ -474,12 +484,12 @@ static char const * const kEmptyDataSetView =       "emptyDataSetView";
             
             UIImage *buttonImage = [self dzn_buttonImageForState:UIControlStateNormal];
             NSAttributedString *buttonTitle = [self dzn_buttonTitleForState:UIControlStateNormal];
-            
+
+            view.verticalSpace = [self dzn_verticalSpace];
+
             UIImage *image = [self dzn_image];
             UIColor *imageTintColor = [self dzn_imageTintColor];
             UIImageRenderingMode renderingMode = imageTintColor ? UIImageRenderingModeAlwaysTemplate : UIImageRenderingModeAlwaysOriginal;
-            
-            view.verticalSpace = [self dzn_verticalSpace];
             
             // Configure Image
             if (image) {
@@ -491,6 +501,11 @@ static char const * const kEmptyDataSetView =       "emptyDataSetView";
                     // iOS 6 fallback: insert code to convert imaged if needed
                     view.imageView.image = image;
                 }
+            }
+            
+            UIView *loadingView = [self dzn_loadingView];
+            if (loadingView) {
+                [view.loadingView addSubview:loadingView];
             }
             
             // Configure title label
@@ -720,7 +735,7 @@ Class dzn_baseClassToSwizzleForTarget(id target)
 
 @implementation DZNEmptyDataSetView
 @synthesize contentView = _contentView;
-@synthesize titleLabel = _titleLabel, detailLabel = _detailLabel, imageView = _imageView, button = _button;
+@synthesize titleLabel = _titleLabel, detailLabel = _detailLabel, loadingView = _loadingView, imageView = _imageView, button = _button;
 
 #pragma mark - Initialization Methods
 
@@ -763,6 +778,21 @@ Class dzn_baseClassToSwizzleForTarget(id target)
         _contentView.alpha = 0;
     }
     return _contentView;
+}
+
+- (UIImageView *)loadingView
+{
+    if (!_loadingView)
+    {
+        _loadingView = [UIView new];
+        _loadingView.translatesAutoresizingMaskIntoConstraints = NO;
+        _loadingView.backgroundColor = [UIColor clearColor];
+        _loadingView.userInteractionEnabled = NO;
+        _loadingView.accessibilityIdentifier = @"empty set loading view";
+        
+        [_contentView addSubview:_loadingView];
+    }
+    return _loadingView;
 }
 
 - (UIImageView *)imageView
@@ -839,6 +869,10 @@ Class dzn_baseClassToSwizzleForTarget(id target)
     return _button;
 }
 
+- (BOOL)canShowLoadingView {
+    return (_loadingView.subviews.count > 0 && _loadingView.superview);
+}
+
 - (BOOL)canShowImage
 {
     return (_imageView.image && _imageView.superview);
@@ -905,6 +939,7 @@ Class dzn_baseClassToSwizzleForTarget(id target)
     
     _titleLabel = nil;
     _detailLabel = nil;
+    _loadingView = nil;
     _imageView = nil;
     _button = nil;
     _customView = nil;
@@ -945,6 +980,17 @@ Class dzn_baseClassToSwizzleForTarget(id target)
         NSMutableDictionary *views = [NSMutableDictionary dictionary];
         NSDictionary *metrics = @{@"padding": @(padding)};
         
+        if (_loadingView.superview) {
+            
+            [subviewStrings addObject:@"loadingView"];
+            views[[subviewStrings lastObject]] = _loadingView;
+            
+            [self.contentView addConstraint:[self.contentView equallyRelatedConstraintWithView:_loadingView attribute:NSLayoutAttributeCenterX]];
+            UIView *subview = self.loadingView.subviews.firstObject;
+            [self.loadingView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-[subview(==width)]-|" options:0 metrics: @{@"width": @(subview.bounds.size.width)} views:@{@"subview": subview}]];
+            [self.loadingView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-[subview(==height)]-|" options:0 metrics:@{@"height": @(subview.bounds.size.width)} views:@{@"subview": subview}]];
+        }
+
         // Assign the image view's horizontal constraints
         if (_imageView.superview) {
             

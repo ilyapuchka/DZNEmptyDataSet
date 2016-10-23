@@ -286,7 +286,8 @@
     
     _loading = loading;
     
-    [self.tableView reloadEmptyDataSet];
+    [self.tableView reloadData];
+//    [self.tableView reloadEmptyDataSet];
 }
 
 
@@ -299,7 +300,15 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
+    if (self.isLoading) {
+        return 1;
+    }
     return 0;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    return 44;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -309,7 +318,7 @@
     if (!cell) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:identifier];
     }
-    
+    cell.textLabel.text = @"Some content";
     return cell;
 }
 
@@ -318,6 +327,10 @@
 
 - (NSAttributedString *)titleForEmptyDataSet:(UIScrollView *)scrollView
 {
+    if (self.isLoading) {
+        return nil;
+    }
+
     NSString *text = nil;
     UIFont *font = nil;
     UIColor *textColor = nil;
@@ -495,6 +508,10 @@
 
 - (NSAttributedString *)descriptionForEmptyDataSet:(UIScrollView *)scrollView
 {
+    if (self.isLoading) {
+        return nil;
+    }
+    
     NSString *text = nil;
     UIFont *font = nil;
     UIColor *textColor = nil;
@@ -697,9 +714,32 @@
     return attributedString;
 }
 
+- (BOOL)emptyDataSetShouldFadeIn:(UIScrollView *)scrollView
+{
+    return true;
+}
+
+- (BOOL)emptyDataSetShouldBeForcedToDisplay:(UIScrollView *)scrollView
+{
+    return self.isLoading;
+}
+
+- (UIView *)loadingViewForEmptyDataSet:(UIScrollView *)scrollView {
+    if (self.isLoading) {
+        UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 100, 100)];
+        view.translatesAutoresizingMaskIntoConstraints = false;
+        view.backgroundColor = [UIColor greenColor];
+        return view;
+    }
+    else {
+        return nil;
+    }
+}
+
 - (UIImage *)imageForEmptyDataSet:(UIScrollView *)scrollView
 {
     if (self.isLoading) {
+        return nil;
         return [UIImage imageNamed:@"loading_imgBlue_78x78"];
     }
     else {
@@ -722,8 +762,20 @@
     return animation;
 }
 
+- (BOOL)emptyDataSetShouldHideContent:(UIScrollView *)scrollView
+{
+    if (self.isLoading) {
+        return false;
+    }
+    return true;
+}
+
 - (NSAttributedString *)buttonTitleForEmptyDataSet:(UIScrollView *)scrollView forState:(UIControlState)state
 {
+    if (self.isLoading) {
+        return nil;
+    }
+    
     NSString *text = nil;
     UIFont *font = nil;
     UIColor *textColor = nil;
@@ -822,28 +874,28 @@
     return [[[UIImage imageNamed:imageName] resizableImageWithCapInsets:capInsets resizingMode:UIImageResizingModeStretch] imageWithAlignmentRectInsets:rectInsets];
 }
 
-- (UIColor *)backgroundColorForEmptyDataSet:(UIScrollView *)scrollView
-{
-    switch (self.application.type) {
-        case ApplicationType500px:      return [UIColor blackColor];
-        case ApplicationTypeAirbnb:     return [UIColor whiteColor];
-        case ApplicationTypeDropbox:    return [UIColor colorWithHex:@"f0f3f5"];
-        case ApplicationTypeFacebook:   return [UIColor colorWithHex:@"eceef7"];
-        case ApplicationTypeFancy:      return [UIColor colorWithHex:@"f0f0f0"];
-        case ApplicationTypeFoursquare: return [UIColor colorWithHex:@"fcfcfa"];
-        case ApplicationTypeInstagram:  return [UIColor whiteColor];
-        case ApplicationTypeKickstarter:return [UIColor colorWithHex:@"f7fafa"];
-        case ApplicationTypePath:       return [UIColor colorWithHex:@"726d67"];
-        case ApplicationTypePinterest:  return [UIColor colorWithHex:@"e1e1e1"];
-        case ApplicationTypeSlack:      return [UIColor whiteColor];
-        case ApplicationTypeTumblr:     return [UIColor colorWithHex:@"34465c"];
-        case ApplicationTypeTwitter:    return [UIColor colorWithHex:@"f5f8fa"];
-        case ApplicationTypeVesper:     return [UIColor colorWithHex:@"f8f8f8"];
-        case ApplicationTypeVideos:     return [UIColor blackColor];
-        case ApplicationTypeWhatsapp:   return [UIColor colorWithHex:@"f2f2f2"];
-        default:                        return nil;
-    }
-}
+//- (UIColor *)backgroundColorForEmptyDataSet:(UIScrollView *)scrollView
+//{
+//    switch (self.application.type) {
+//        case ApplicationType500px:      return [UIColor blackColor];
+//        case ApplicationTypeAirbnb:     return [UIColor whiteColor];
+//        case ApplicationTypeDropbox:    return [UIColor colorWithHex:@"f0f3f5"];
+//        case ApplicationTypeFacebook:   return [UIColor colorWithHex:@"eceef7"];
+//        case ApplicationTypeFancy:      return [UIColor colorWithHex:@"f0f0f0"];
+//        case ApplicationTypeFoursquare: return [UIColor colorWithHex:@"fcfcfa"];
+//        case ApplicationTypeInstagram:  return [UIColor whiteColor];
+//        case ApplicationTypeKickstarter:return [UIColor colorWithHex:@"f7fafa"];
+//        case ApplicationTypePath:       return [UIColor colorWithHex:@"726d67"];
+//        case ApplicationTypePinterest:  return [UIColor colorWithHex:@"e1e1e1"];
+//        case ApplicationTypeSlack:      return [UIColor whiteColor];
+//        case ApplicationTypeTumblr:     return [UIColor colorWithHex:@"34465c"];
+//        case ApplicationTypeTwitter:    return [UIColor colorWithHex:@"f5f8fa"];
+//        case ApplicationTypeVesper:     return [UIColor colorWithHex:@"f8f8f8"];
+//        case ApplicationTypeVideos:     return [UIColor blackColor];
+//        case ApplicationTypeWhatsapp:   return [UIColor colorWithHex:@"f2f2f2"];
+//        default:                        return nil;
+//    }
+//}
 
 - (CGFloat)verticalOffsetForEmptyDataSet:(UIScrollView *)scrollView
 {

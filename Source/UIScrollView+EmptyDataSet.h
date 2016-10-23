@@ -71,6 +71,13 @@ NS_ASSUME_NONNULL_BEGIN
  @return An image for the dataset.
  */
 - (nullable UIImage *)imageForEmptyDataSet:(UIScrollView *)scrollView;
+/**
+ Asks the data source for the loading view of the dataset.
+ 
+ @param scrollView A scrollView subclass informing the data source.
+ @return A view for the dataset.
+ */
+- (UIView *)loadingViewForEmptyDataSet:(UIScrollView *)scrollView;
 
 
 /**

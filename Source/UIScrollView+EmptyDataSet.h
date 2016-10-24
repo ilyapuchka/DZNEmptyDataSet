@@ -77,7 +77,7 @@ NS_ASSUME_NONNULL_BEGIN
  @param scrollView A scrollView subclass informing the data source.
  @return A view for the dataset.
  */
-- (UIView *)loadingViewForEmptyDataSet:(UIScrollView *)scrollView;
+- (nullable UIView *)loadingViewForEmptyDataSet:(UIScrollView *)scrollView;
 
 /**
  Asks the data source for a tint color of the image dataset. Default is nil.

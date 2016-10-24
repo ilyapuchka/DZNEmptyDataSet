@@ -188,7 +188,7 @@ static char const * const kEmptyDataSetView =       "emptyDataSetView";
 
 - (UIView *)dzn_loadingView {
     if (self.emptyDataSetSource && [self.emptyDataSetSource respondsToSelector:@selector(loadingViewForEmptyDataSet:)]) {
-        UIImage *view = [self.emptyDataSetSource loadingViewForEmptyDataSet:self];
+        UIView *view = [self.emptyDataSetSource loadingViewForEmptyDataSet:self];
         if (view) NSAssert([view isKindOfClass:[UIView class]], @"You must return a UIView object for -loadingViewForEmptyDataSet:");
         return view;
     }
@@ -795,7 +795,7 @@ Class dzn_baseClassToSwizzleForTarget(id target)
     return _contentView;
 }
 
-- (UIImageView *)loadingView
+- (UIView *)loadingView
 {
     if (!_loadingView)
     {

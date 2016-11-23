@@ -38,6 +38,8 @@
 
 @property (nonatomic, assign) CGFloat verticalOffset;
 @property (nonatomic, assign) CGFloat verticalSpace;
+@property (nonatomic, assign) BOOL pinButtonToBottom;
+@property (nonatomic, assign) CGSize buttonSize;
 
 @property (nonatomic, assign) BOOL fadeInOnDisplay;
 
@@ -293,6 +295,26 @@ static char const * const kEmptyDataSetView =       "emptyDataSetView";
     return 0.0;
 }
 
+- (CGSize)dzn_buttonSize
+{
+    CGSize size = CGSizeZero;
+    
+    if (self.emptyDataSetSource && [self.emptyDataSetSource respondsToSelector:@selector(buttonSizeForEmptyDataSet:)]) {
+        size = [self.emptyDataSetSource buttonSizeForEmptyDataSet:self];
+    }
+    return size;
+}
+
+- (BOOL)dzn_pinButtonToBottom
+{
+    BOOL pin = NO;
+    
+    if (self.emptyDataSetSource && [self.emptyDataSetSource respondsToSelector:@selector(pinButtonToBottomForEmptyDataSet:)]) {
+        pin = [self.emptyDataSetSource pinButtonToBottomForEmptyDataSet:self];
+    }
+    return pin;
+}
+
 
 #pragma mark - Delegate Getters & Events (Private)
 
@@ -503,6 +525,8 @@ static char const * const kEmptyDataSetView =       "emptyDataSetView";
             NSAttributedString *buttonTitle = [self dzn_buttonTitleForState:UIControlStateNormal];
 
             view.verticalSpace = [self dzn_verticalSpace];
+            view.pinButtonToBottom = [self dzn_pinButtonToBottom];
+            view.buttonSize = [self dzn_buttonSize];
 
             UIImage *image = [self dzn_image];
             UIColor *imageTintColor = [self dzn_imageTintColor];
@@ -990,6 +1014,8 @@ Class dzn_baseClassToSwizzleForTarget(id target)
         CGFloat width = CGRectGetWidth(self.frame) ? : CGRectGetWidth([UIScreen mainScreen].bounds);
         CGFloat padding = roundf(width/16.0);
         CGFloat verticalSpace = self.verticalSpace ? : 11.0; // Default is 11 pts
+        CGSize buttonSize = self.buttonSize;
+        BOOL pinButtonToBottom = self.pinButtonToBottom && [self canShowButton];
         
         NSMutableArray *subviewStrings = [NSMutableArray array];
         NSMutableDictionary *views = [NSMutableDictionary dictionary];
@@ -1053,8 +1079,23 @@ Class dzn_baseClassToSwizzleForTarget(id target)
             [subviewStrings addObject:@"button"];
             views[[subviewStrings lastObject]] = _button;
             
-            [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-(padding@750)-[button(>=0)]-(padding@750)-|"
-                                                                                     options:0 metrics:metrics views:views]];
+            if (CGSizeEqualToSize(buttonSize, CGSizeZero)) {
+                [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-(padding@750)-[button(>=0)]-(padding@750)-|"
+                                                                                         options:0 metrics:metrics views:views]];
+            }
+            else {
+                [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:[button(>=width)]"
+                                                                                         options:0 metrics:@{ @"width": @(buttonSize.width) } views:views]];
+                [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:[button(==height)]"
+                                                                                         options:0 metrics:@{ @"height": @(buttonSize.height) } views:views]];
+                [self.contentView addConstraint:[NSLayoutConstraint constraintWithItem:_button
+                                                                             attribute:NSLayoutAttributeCenterX
+                                                                             relatedBy:NSLayoutRelationEqual
+                                                                                toItem:self.contentView
+                                                                             attribute:NSLayoutAttributeCenterX
+                                                                            multiplier:1.0
+                                                                              constant:0]];
+            }
         }
         // or removes from its superview
         else {
@@ -1062,6 +1103,15 @@ Class dzn_baseClassToSwizzleForTarget(id target)
             _button = nil;
         }
         
+        if (pinButtonToBottom && [self canShowImage]) {
+            [self.contentView addConstraint:[NSLayoutConstraint constraintWithItem:_imageView
+                                                                         attribute:NSLayoutAttributeCenterY
+                                                                         relatedBy:NSLayoutRelationEqual
+                                                                            toItem:self.contentView
+                                                                         attribute:NSLayoutAttributeCenterY
+                                                                        multiplier:1.0
+                                                                          constant:-buttonSize.height]];
+        }
         
         NSMutableString *verticalFormat = [NSMutableString new];
         
@@ -1072,14 +1122,28 @@ Class dzn_baseClassToSwizzleForTarget(id target)
             [verticalFormat appendFormat:@"[%@]", string];
             
             if (i < subviewStrings.count-1) {
-                [verticalFormat appendFormat:@"-(%.f@750)-", verticalSpace];
+                if (pinButtonToBottom && [subviewStrings[i+1] isEqualToString:@"button"]) {
+                    [verticalFormat appendFormat:@"-(>=%.f@750)-", verticalSpace];
+                } else {
+                    [verticalFormat appendFormat:@"-(%.f@750)-", verticalSpace];
+                }
             }
         }
         
         // Assign the vertical constraints to the content view
         if (verticalFormat.length > 0) {
-            [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:[NSString stringWithFormat:@"V:|%@|", verticalFormat]
+            NSString *format = @"";
+            if (pinButtonToBottom) {
+                format = @"V:%@|";
+            } else {
+                format = @"V:|%@|";
+            }
+            [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:[NSString stringWithFormat:format, verticalFormat]
                                                                                      options:0 metrics:metrics views:views]];
+        }
+        if (pinButtonToBottom) {
+            [self.contentView.superview addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:[contentView]-(padding@750)-|"
+                                                                                               options:0 metrics:metrics views:@{@"contentView": self.contentView}]];
         }
     }
 }

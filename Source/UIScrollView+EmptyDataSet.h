@@ -153,6 +153,9 @@ NS_ASSUME_NONNULL_BEGIN
 - (CGPoint)offsetForEmptyDataSet:(UIScrollView *)scrollView DZNEmptyDataSetDeprecated(-verticalOffsetForEmptyDataSet:);
 - (CGFloat)verticalOffsetForEmptyDataSet:(UIScrollView *)scrollView;
 
+- (CGSize)buttonSizeForEmptyDataSet:(UIScrollView *)scrollView;
+- (BOOL)pinButtonToBottomForEmptyDataSet:(UIScrollView *)scrollView;
+
 /**
  Asks the data source for a vertical space between elements. Default is 11 pts.
  

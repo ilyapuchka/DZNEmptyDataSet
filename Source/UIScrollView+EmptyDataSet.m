@@ -1028,8 +1028,8 @@ Class dzn_baseClassToSwizzleForTarget(id target)
             
             [self.contentView addConstraint:[self.contentView equallyRelatedConstraintWithView:_loadingView attribute:NSLayoutAttributeCenterX]];
             UIView *subview = self.loadingView.subviews.firstObject;
-            [_loadingView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-[subview]-|" options:0 metrics: nil views:@{@"subview": subview}]];
-            [_loadingView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-[subview]-|" options:0 metrics:nil views:@{@"subview": subview}]];
+            [_loadingView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0-[subview]-0-|" options:0 metrics: nil views:@{@"subview": subview}]];
+            [_loadingView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[subview]-0-|" options:0 metrics:nil views:@{@"subview": subview}]];
             [_loadingView addConstraint:[NSLayoutConstraint constraintWithItem:_loadingView attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:subview.frame.size.width]];
             [_loadingView addConstraint:[NSLayoutConstraint constraintWithItem:_loadingView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:subview.frame.size.height]];
         }
